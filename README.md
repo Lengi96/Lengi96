@@ -51,3 +51,5 @@
 
 ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Lengi96&show_icons=true&hide_title=true)
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Lengi96&layout=compact)
+
+_Last profile update: 2026-03-05_
