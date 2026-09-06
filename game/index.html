@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>DESERT SLUG</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0b10'/%3E%3Crect x='3' y='4' width='10' height='3' fill='%23ffd75e'/%3E%3Crect x='3' y='9' width='10' height='3' fill='%23e8443a'/%3E%3C/svg%3E" />
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0; height: 100%; background: #07070c; overflow: hidden;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      #stage {
+        position: fixed; inset: 0; display: grid; place-items: center;
+      }
+      canvas {
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        display: block;
+        background: #000;
+      }
+      #hint {
+        position: fixed; left: 0; right: 0; bottom: 6px; text-align: center;
+        color: #4a4a5e; font-size: 11px; letter-spacing: .08em; pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"><canvas id="screen"></canvas></div>
+    <div id="hint">PFEILE/WASD bewegen &nbsp;·&nbsp; X schie&szlig;en &nbsp;·&nbsp; C springen &nbsp;·&nbsp; V granate &nbsp;·&nbsp; ENTER start &nbsp;·&nbsp; P pause</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
