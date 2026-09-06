@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "verify": "npm run build && node tools/verify.mjs",
-    "check": "npm run typecheck && npm run test && npm run verify"
+    "check": "npm run typecheck && npm run test && npm run verify",
+    "artifact": "npm run build && node tools/bundle-artifact.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.0",
