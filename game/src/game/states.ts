@@ -51,6 +51,7 @@ export class Game {
   update(): void {
     this.sceneTicks++;
     if (input.pressed('start') || input.pressed('shoot')) sfx.resume();
+    if (input.pressed('mute')) sfx.toggleMute();
 
     switch (this.scene) {
       case 'title': this.updateTitle(); break;
@@ -222,7 +223,7 @@ export class Game {
         color: PAL.white, align: 'center', scale: 2, shadow: PAL.black,
       });
     }
-    drawText(ctx, 'X FIRE   C JUMP   V GRENADE', SCREEN_W / 2, 148, {
+    drawText(ctx, 'WASD MOVE   CLICK FIRE   X JUMP   G BOMB', SCREEN_W / 2, 148, {
       color: PAL.hudDim, align: 'center', shadow: PAL.black,
     });
     drawText(ctx, `HI ${String(this.hiScore).padStart(7, '0')}`, SCREEN_W / 2, 196, {

@@ -11,7 +11,9 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 
 const screen = new Screen(canvas);
 const game = new Game();
-input.attach(window);
+// Mouse presses are read on the canvas so a click on the page chrome around
+// it does not fire the weapon; releases are watched on the window.
+input.attach(window, canvas);
 
 // Audio can only start from a user gesture, so arm it on the first input.
 const arm = () => sfx.resume();
@@ -84,6 +86,7 @@ window.__slug = {
       ammo: Number.isFinite(w.player.ammo) ? w.player.ammo : 'INF',
       grenades: w.player.grenades,
       actors: w.actors.length,
+      shots: w.playerShots.length,
       bossHp: w.boss?.hp ?? null,
       riding: w.player.ridingSlug,
     };

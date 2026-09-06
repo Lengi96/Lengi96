@@ -181,6 +181,13 @@ async function main() {
   await page.keyboard.up('ArrowRight');
   console.log(`real keyboard: Enter -> scene "${afterEnter}", ArrowRight -> x ${beforeWalk} to ${afterWalk}`);
 
+  // Firing lives on the mouse now, and a pointer event takes a different route
+  // into the input layer than a key event, so prove that route separately.
+  await page.locator('#screen').click({ position: { x: 40, y: 40 } });
+  await page.evaluate(() => window.__slug.step(4));
+  const shotsAfterClick = await page.evaluate(() => window.__slug.state().shots);
+  console.log(`real mouse: click -> ${shotsAfterClick} player shot(s) in flight`);
+
   await page.reload();
   await page.waitForFunction('window.__slug !== undefined');
   await page.evaluate(() => window.__slug.loop.stop());
@@ -227,6 +234,9 @@ async function main() {
   }
   if (afterWalk <= beforeWalk) {
     failures.push(`real ArrowRight did not move the player (x ${beforeWalk} -> ${afterWalk})`);
+  }
+  if (!(shotsAfterClick >= 1)) {
+    failures.push('a real mouse click on the screen did not fire the weapon');
   }
   if (run1.state.camX < 400) failures.push('run 1 barely scrolled: camX=' + run1.state.camX);
   if (run2.state.scene !== 'tally' && run2.state.phase !== 'clear') {

@@ -26,11 +26,12 @@ Unterordner heraus lauffähig, z. B. GitHub Pages).
 | Aktion | Tastatur | Gamepad |
 |---|---|---|
 | Bewegen / Zielen (8 Wege) | Pfeiltasten oder WASD | D-Pad / linker Stick |
-| Schießen (halten = Dauerfeuer) | `X` oder `J` | B / X |
-| Springen | `C` oder `K` | A |
-| Granate | `V` oder `L` | Y / R1 |
-| Start / Continue | `Enter` oder `Leertaste` | Start |
+| Schießen (halten = Dauerfeuer) | **Mausklick** oder `Leertaste` | B / X |
+| Springen | `X` | A |
+| Granate | `G` | Y / R1 |
+| Start / Continue | `Enter` | Start |
 | Pause | `P` oder `Esc` | Select |
+| Ton an/aus | `M` | – |
 
 Feinheiten, die das Spielgefühl ausmachen:
 

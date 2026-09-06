@@ -6,6 +6,51 @@
 
 type NoiseKind = 'white' | 'brown';
 
+// --------------------------------------------------------------- music data
+
+/** Sixteenth-note length; 0.15s works out to about 100 BPM. */
+const STEP_SECONDS = 0.15;
+const BAR_STEPS = 16;
+/** How far ahead of the audio clock notes are queued. */
+const SCHEDULE_AHEAD = 0.12;
+
+/**
+ * Root of each bar: tonic, tonic, VI, V. In a Hijaz scale that VI-V move is
+ * the phrase everyone recognises as "desert", and it keeps a four-bar loop
+ * from sounding like it is merely repeating.
+ */
+const D2 = 73.42;
+const BARS = [D2 * 2, D2 * 2, D2 * 2 * (233.08 / 146.83), D2 * 2 * (220 / 146.83)];
+
+/** Darbuka: 'D' low stroke, 't' rim, 'T' accented rim. One bar of sixteenths. */
+const PERCUSSION = 'D.t...t.D..t.t.T';
+
+/** Bass: 'R' root, '5' fifth. */
+const BASS = 'R..R..5...R.5..5';
+
+/**
+ * The lead line as scale ratios against each bar's root, zero for a rest.
+ * These are the Hijaz degrees: minor second, augmented second, fifth.
+ */
+const UNISON = 1;
+const MIN2 = 16 / 15;
+const MAJ3 = 5 / 4;
+const P4 = 4 / 3;
+const P5 = 3 / 2;
+const MIN6 = 8 / 5;
+const OCT = 2;
+
+const LEAD = [
+  // Bar 1: climb the scale and hang on the fifth.
+  UNISON, 0, 0, MIN2, 0, MAJ3, 0, 0, P4, 0, P5, 0, 0, 0, MAJ3, 0,
+  // Bar 2: answer, falling back to the tonic.
+  P5, 0, MIN6, 0, P5, 0, P4, 0, MAJ3, 0, MIN2, 0, UNISON, 0, 0, 0,
+  // Bar 3 over the VI: a held high note.
+  OCT, 0, 0, 0, 0, 0, P5, 0, MIN6, 0, 0, 0, P5, 0, 0, 0,
+  // Bar 4 over the V: the turn back to the top.
+  P4, 0, MAJ3, 0, MIN2, 0, UNISON, 0, 0, 0, MIN2, 0, MAJ3, 0, P4, 0,
+];
+
 export class Sfx {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -185,9 +230,17 @@ export class Sfx {
     this.burst({ dur: 0.05, peak: 0.24, freq: 3000, freqTo: 1200, q: 2 });
   }
 
+  // ------------------------------------------------------------------ music
+
   /**
-   * A short looping bass-and-arpeggio bed. Deliberately minimal: enough to
-   * carry the level, quiet enough to stay out of the way of the effects.
+   * The level theme, built from a Hijaz (Phrygian dominant) scale over a
+   * darbuka pattern - the sound the setting actually calls for, rather than
+   * the generic chiptune arpeggio this replaced. Four bars: two on the tonic,
+   * then the VI and the V, so the loop resolves instead of just repeating.
+   *
+   * Notes are scheduled ahead against the audio clock rather than played the
+   * moment a timer fires, because a timer drifts and the resulting music
+   * sounds unsteady.
    */
   startMusic(): void {
     const ctx = this.ctx;
@@ -195,41 +248,162 @@ export class Sfx {
     if (!ctx || !master || this.musicStop) return;
 
     const bus = ctx.createGain();
-    bus.gain.value = 0.11;
+    bus.gain.value = 0.13;
     bus.connect(master);
 
-    const bass = [55, 55, 73.4, 55, 49, 49, 65.4, 49];
-    const arp = [220, 293.7, 349.2, 293.7, 261.6, 329.6, 392, 329.6];
-    const step = 0.24;
-    let i = 0;
+    let step = 0;
+    let nextStepTime = ctx.currentTime + 0.06;
     let stopped = false;
 
-    const timer = window.setInterval(() => {
-      if (stopped || !this.ctx || this.muted) return;
-      const now = this.ctx.currentTime;
-      const play = (freq: number, type: OscillatorType, dur: number, peak: number) => {
-        const osc = this.ctx!.createOscillator();
-        const g = this.ctx!.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        g.gain.setValueAtTime(0.0001, now);
-        g.gain.linearRampToValueAtTime(peak, now + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-        osc.connect(g).connect(bus);
-        osc.start(now);
-        osc.stop(now + dur + 0.05);
-      };
-      play(bass[i % bass.length], 'triangle', step * 0.9, 0.6);
-      play(arp[i % arp.length], 'square', step * 0.5, 0.22);
-      if (i % 4 === 2) this.burst({ dur: 0.05, peak: 0.08, freq: 5000, q: 1 });
-      i++;
-    }, step * 1000);
+    const tick = () => {
+      const c = this.ctx;
+      if (stopped || !c) return;
+      // Schedule everything that falls inside the lookahead window.
+      while (nextStepTime < c.currentTime + SCHEDULE_AHEAD) {
+        if (!this.muted) this.playStep(step, nextStepTime, bus);
+        nextStepTime += STEP_SECONDS;
+        step++;
+      }
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 25);
 
     this.musicStop = () => {
       stopped = true;
       window.clearInterval(timer);
-      bus.disconnect();
+      // Let anything already scheduled ring out before tearing the bus down.
+      const c = this.ctx;
+      if (c) {
+        bus.gain.setValueAtTime(bus.gain.value, c.currentTime);
+        bus.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.25);
+      }
+      window.setTimeout(() => bus.disconnect(), 400);
     };
+  }
+
+  /** Plays one sixteenth of the loop at an absolute audio-clock time. */
+  private playStep(step: number, when: number, bus: GainNode): void {
+    const inBar = step % BAR_STEPS;
+    const bar = Math.floor(step / BAR_STEPS) % BARS.length;
+    const root = BARS[bar];
+
+    const drum = PERCUSSION[inBar];
+    if (drum === 'D') this.dum(when, bus);
+    else if (drum === 't') this.tek(when, bus, 0.16);
+    else if (drum === 'T') this.tek(when, bus, 0.3);
+
+    const bassNote = BASS[inBar];
+    if (bassNote === 'R') this.pluck(root / 2, when, bus, 0.22, 0.55);
+    else if (bassNote === '5') this.pluck((root / 2) * 1.5, when, bus, 0.18, 0.45);
+
+    const lead = LEAD[bar * BAR_STEPS + inBar];
+    if (lead > 0) this.reed(root * lead, when, bus);
+
+    // A quiet sustained fifth under the first beat of each bar holds the key.
+    if (inBar === 0) this.drone(root * 1.5, when, bus);
+  }
+
+  /** Low hand-drum stroke: a pitch that drops fast into the floor. */
+  private dum(when: number, bus: GainNode): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, when);
+    osc.frequency.exponentialRampToValueAtTime(48, when + 0.11);
+    gain.gain.setValueAtTime(0.9, when);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.22);
+    osc.connect(gain).connect(bus);
+    osc.start(when);
+    osc.stop(when + 0.26);
+  }
+
+  /** Rim stroke: a short bright crack of filtered noise. */
+  private tek(when: number, bus: GainNode, peak: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const buf = this.noiseBuffer('white');
+    if (!buf) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 3200;
+    filter.Q.value = 1.4;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(peak, when);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.06);
+    src.connect(filter).connect(gain).connect(bus);
+    src.start(when, Math.random() * 0.3);
+    src.stop(when + 0.1);
+  }
+
+  /** Plucked bass string. */
+  private pluck(freq: number, when: number, bus: GainNode, dur: number, peak: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, when);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1800, when);
+    filter.frequency.exponentialRampToValueAtTime(320, when + dur);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(peak, when + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(filter).connect(gain).connect(bus);
+    osc.start(when);
+    osc.stop(when + dur + 0.05);
+  }
+
+  /** The lead: a reedy double-oscillator line, detuned so it bites. */
+  private reed(freq: number, when: number, bus: GainNode): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const dur = STEP_SECONDS * 1.7;
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(freq * 2.4, when);
+    filter.Q.value = 2.2;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(0.3, when + 0.02);
+    gain.gain.setValueAtTime(0.3, when + dur * 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    filter.connect(gain).connect(bus);
+
+    for (const detune of [-7, 7]) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, when);
+      osc.detune.setValueAtTime(detune, when);
+      osc.connect(filter);
+      osc.start(when);
+      osc.stop(when + dur + 0.05);
+    }
+  }
+
+  /** Sustained fifth under the bar, the way a reed drone sits under a melody. */
+  private drone(freq: number, when: number, bus: GainNode): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const dur = STEP_SECONDS * BAR_STEPS;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq / 2, when);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(0.07, when + 0.12);
+    gain.gain.setValueAtTime(0.07, when + dur * 0.7);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(gain).connect(bus);
+    osc.start(when);
+    osc.stop(when + dur + 0.05);
   }
 
   stopMusic(): void {

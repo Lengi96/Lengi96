@@ -15,7 +15,7 @@ beforeEach(() => {
  * scripted-input path. That distinction matters: an earlier version of
  * `beginTick` snapshotted the previous state from the *current* held set, which
  * left `pressed()` permanently false for keyboard and gamepad while the
- * scripted path kept working — so Start, Jump, Grenade and Pause were all dead
+ * scripted path kept working - so Start, Jump, Grenade and Pause were all dead
  * in the browser while the headless run passed.
  */
 describe('edge detection on the real keyboard path', () => {
@@ -43,7 +43,7 @@ describe('edge detection on the real keyboard path', () => {
     input.beginTick();
     expect(input.pressed('jump')).toBe(false);
 
-    input.keyDown('KeyC');
+    input.keyDown('KeyX');
     input.beginTick();
     expect(input.pressed('jump')).toBe(true);
   });
@@ -51,10 +51,10 @@ describe('edge detection on the real keyboard path', () => {
   it('registers a fresh press after the key is released and hit again', () => {
     const input = new Input();
     for (let round = 0; round < 3; round++) {
-      input.keyDown('KeyV');
+      input.keyDown('KeyG');
       input.beginTick();
       expect(input.pressed('grenade')).toBe(true);
-      input.keyUp('KeyV');
+      input.keyUp('KeyG');
       input.beginTick();
       expect(input.pressed('grenade')).toBe(false);
     }
@@ -67,9 +67,11 @@ describe('edge detection on the real keyboard path', () => {
       ['ArrowRight', 'right'], ['KeyD', 'right'],
       ['ArrowUp', 'up'], ['KeyW', 'up'],
       ['ArrowDown', 'down'], ['KeyS', 'down'],
-      ['KeyX', 'shoot'], ['KeyC', 'jump'], ['KeyV', 'grenade'],
-      ['Enter', 'start'], ['Space', 'start'],
+      ['Mouse0', 'shoot'], ['Space', 'shoot'],
+      ['KeyX', 'jump'], ['KeyG', 'grenade'],
+      ['Enter', 'start'],
       ['KeyP', 'pause'], ['Escape', 'pause'],
+      ['KeyM', 'mute'],
     ];
     for (const [code, button] of cases) {
       input.keyDown(code);
@@ -78,6 +80,41 @@ describe('edge detection on the real keyboard path', () => {
       input.keyUp(code);
       input.beginTick();
     }
+  });
+
+  it('fires from the mouse button exactly like the space bar', () => {
+    const input = new Input();
+    input.keyDown('Mouse0');
+    input.beginTick();
+    expect(input.pressed('shoot')).toBe(true);
+
+    // Held across ticks means sustained fire, not a repeated press.
+    input.beginTick();
+    expect(input.down('shoot')).toBe(true);
+    expect(input.pressed('shoot')).toBe(false);
+
+    input.keyUp('Mouse0');
+    input.beginTick();
+    expect(input.down('shoot')).toBe(false);
+  });
+
+  it('keeps a button held while any of its sources is still down', () => {
+    // Two sources are bound to `shoot`; releasing one must not cancel the
+    // other, which is why buttons are derived from the held sources each tick
+    // rather than toggled directly.
+    const input = new Input();
+    input.keyDown('Space');
+    input.keyDown('Mouse0');
+    input.beginTick();
+    expect(input.down('shoot')).toBe(true);
+
+    input.keyUp('Mouse0');
+    input.beginTick();
+    expect(input.down('shoot')).toBe(true);
+
+    input.keyUp('Space');
+    input.beginTick();
+    expect(input.down('shoot')).toBe(false);
   });
 
   it('ignores keys that are not bound', () => {
@@ -120,6 +157,23 @@ describe('edge detection on the real keyboard path', () => {
     expect(input.pressed('shoot')).toBe(false);
 
     input.setScripted(new Set([]));
+    input.beginTick();
+    expect(input.down('shoot')).toBe(false);
+  });
+});
+
+describe('taps shorter than a frame', () => {
+  it('still registers a click that opens and closes between two ticks', () => {
+    const input = new Input();
+    input.beginTick();
+
+    // Down and up with no tick in between - a fast mouse click.
+    input.keyDown('Mouse0');
+    input.keyUp('Mouse0');
+    input.beginTick();
+    expect(input.pressed('shoot')).toBe(true);
+
+    // And it lasts exactly one tick, so it cannot stick as continuous fire.
     input.beginTick();
     expect(input.down('shoot')).toBe(false);
   });

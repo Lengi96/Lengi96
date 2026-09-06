@@ -183,14 +183,15 @@ const page = `<title>Desert Slug Cabinet</title>
   </div>
 
   <div id="legend">
-    <span class="control"><kbd>&larr;</kbd><kbd>&uarr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> Bewegen &amp; Zielen</span>
+    <span class="control"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Bewegen &amp; Zielen</span>
     <span class="sep"></span>
-    <span class="control fire"><kbd>X</kbd> Schie&szlig;en</span>
-    <span class="control"><kbd>C</kbd> Springen</span>
-    <span class="control"><kbd>V</kbd> Granate</span>
+    <span class="control fire"><kbd>Mausklick</kbd> Schie&szlig;en</span>
+    <span class="control"><kbd>X</kbd> Springen</span>
+    <span class="control"><kbd>G</kbd> Granate</span>
     <span class="sep"></span>
     <span class="control"><kbd>Enter</kbd> Start</span>
     <span class="control"><kbd>P</kbd> Pause</span>
+    <span class="control"><kbd>M</kbd> Ton</span>
   </div>
 
   <p id="tap">Ins Bild klicken, dann Enter dr&uuml;cken</p>
