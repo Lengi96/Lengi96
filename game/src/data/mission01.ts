@@ -41,8 +41,9 @@ export const MISSION_01: LevelData = {
 
     // Rooftops and the planks over the gaps: jump up through, stand on top.
     { x: 360, y: 118, w: 96, h: 6, kind: 'platform' },
+    { x: 600, y: 112, w: 92, h: 6, kind: 'platform' },
     { x: 880, y: 146, w: 92, h: 6, kind: 'platform' },
-    { x: 1180, y: 110, w: 110, h: 6, kind: 'platform' },
+    { x: 1180, y: 110, w: 190, h: 6, kind: 'platform' },
     { x: 1630, y: 144, w: 96, h: 6, kind: 'platform' },
     { x: 2140, y: 126, w: 110, h: 6, kind: 'platform' },
     { x: 2820, y: 104, w: 120, h: 6, kind: 'platform' },
@@ -124,10 +125,10 @@ export const MISSION_01: LevelData = {
     // --- Gate 2: rooftop crossfire. ---
     { at: 1120, kind: 'soldier', x: 1420, y: GROUND_Y, gate: 2 },
     { at: 1120, kind: 'soldier', x: 1470, y: GROUND_Y, gate: 2 },
-    { at: 1130, kind: 'soldier', x: 1300, y: 104, facing: 1, gate: 2 },
+    { at: 1130, kind: 'soldier', x: 1300, y: 110, facing: 1, gate: 2 },
     { at: 1140, kind: 'shield', x: 1380, y: GROUND_Y, gate: 2 },
     { at: 1160, kind: 'mortar', x: 1470, y: GROUND_Y, gate: 2 },
-    { at: 1160, kind: 'turret', x: 1330, y: 104, gate: 2 },
+    { at: 1160, kind: 'turret', x: 1330, y: 110, gate: 2 },
 
     // --- Approach to the rival. ---
     { at: 1450, kind: 'soldier', x: 1780, y: GROUND_Y },
@@ -139,7 +140,7 @@ export const MISSION_01: LevelData = {
     { at: 1960, kind: 'rival', x: 2180, y: GROUND_Y, gate: 3 },
     { at: 1960, kind: 'soldier', x: 2100, y: GROUND_Y, gate: 3 },
     { at: 1970, kind: 'soldier', x: 2240, y: GROUND_Y, gate: 3 },
-    { at: 1980, kind: 'turret', x: 2200, y: 120, gate: 3 },
+    { at: 1980, kind: 'turret', x: 2200, y: 126, gate: 3 },
 
     // --- Terrace climb, and the tank that is waiting for the player. ---
     { at: 2200, kind: 'soldier', x: 2540, y: GROUND_Y },

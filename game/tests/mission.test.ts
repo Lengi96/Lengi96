@@ -14,6 +14,22 @@ describe('mission 1 layout', () => {
     expect(under).toBe(true);
   });
 
+  /**
+   * A spawn point with nothing underneath it drops its enemy into the scene
+   * from above the screen, which reads as unfair because the player has no way
+   * to see it coming. Every one of them has to stand on something.
+   */
+  it('places every spawn on solid footing rather than in mid-air', () => {
+    const airborne = ['boss'];
+    for (const s of level.spawns) {
+      if (airborne.includes(s.kind)) continue;
+      const under = level.solids.some(
+        (p) => s.x >= p.x && s.x <= p.x + p.w && p.y === s.y,
+      );
+      expect(under, `${s.kind} at ${s.x}/${s.y} has no ground under it`).toBe(true);
+    }
+  });
+
   it('never scrolls past the end of the level', () => {
     expect(level.bossCamX).toBeLessThanOrEqual(level.width - SCREEN_W);
   });
