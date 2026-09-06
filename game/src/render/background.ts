@@ -11,11 +11,12 @@ import type { Level } from '../game/level';
  */
 
 const SKY_BANDS: Array<[number, string]> = [
-  [0.0, '#20304f'],
-  [0.28, '#3f5878'],
-  [0.5, '#7d7e8d'],
-  [0.66, '#c08a63'],
-  [0.82, '#dcae74'],
+  [0.0, '#141d34'],
+  [0.22, '#24365a'],
+  [0.42, '#3d5478'],
+  [0.6, '#6d6a7d'],
+  [0.72, '#a2715a'],
+  [0.82, '#c98f5f'],
 ];
 
 export function drawSky(ctx: CanvasRenderingContext2D): void {
@@ -38,13 +39,17 @@ function hash(n: number): number {
 }
 
 export function drawParallax(ctx: CanvasRenderingContext2D, cam: Camera): void {
-  // Layer order back to front. The skylines are tall enough to reach well up
-  // into the sky so the frame does not read as an empty band over a strip of
-  // ground, which is how the arcade backdrops are composed.
-  drawDunes(ctx, cam.x * 0.1, SCREEN_H * 0.46, '#6d5636', 24, 210);
-  drawDunes(ctx, cam.x * 0.18, SCREEN_H * 0.56, '#5b482c', 18, 160);
+  // Layer order back to front, each one darker and cooler than the last.
+  // Value separation is what keeps the backdrop behind the action: the town
+  // is scenery, and it has to lose every contest for the eye against a
+  // 22-pixel character standing in front of it.
+  drawDunes(ctx, cam.x * 0.1, SCREEN_H * 0.46, '#4a4038', 24, 210);
+  drawDunes(ctx, cam.x * 0.18, SCREEN_H * 0.56, '#3b332e', 18, 160);
   drawSkyline(ctx, cam.x * 0.32, 180);
-  drawSkyline(ctx, cam.x * 0.55, 194, true);
+  drawSkyline(ctx, cam.x * 0.55, 196, true);
+  // Warm haze pooling at the base of the town, tying it to the ground plane.
+  px(ctx, 0, 168, SCREEN_W, 10, 'rgba(150,96,58,0.22)');
+  px(ctx, 0, 178, SCREEN_W, 14, 'rgba(120,74,44,0.28)');
 }
 
 function drawDunes(
@@ -73,10 +78,8 @@ function drawSkyline(
     const bh = Math.round((near ? 54 : 44) + hash(i * 31 + 7) * (near ? 66 : 52));
     const bx = Math.round(i * cell - offset);
     const by = Math.round(baseY - bh);
-    // The backdrop is kept dark and low-contrast on purpose: the play plane
-    // and the characters have to be the brightest things on screen.
-    const body = near ? '#4a3626' : '#38291f';
-    const roof = near ? '#5a422e' : '#443127';
+    const body = near ? '#3a2c26' : '#2b2226';
+    const roof = near ? '#48372d' : '#362a2c';
 
     px(ctx, bx, by, bw, bh, body);
     px(ctx, bx, by, bw, 3, roof);
@@ -95,14 +98,37 @@ function drawSkyline(
       px(ctx, tx + 3, by - 46, 3, 5, roof);
     }
 
-    // Windows
+    // Windows. Most are dark; only a few are lit, and the lit ones stay dim -
+    // a full grid of bright squares reads as wallpaper, not as a town.
+    const shutter = near ? '#241c1e' : '#1d1719';
+    const lit = near ? '#6b4f2a' : '#4e3a22';
     for (let wy = by + 7; wy < by + bh - 5; wy += 9) {
       for (let wx = bx + 4; wx < bx + bw - 5; wx += 9) {
-        if (hash(wx * 7 + wy * 13) > 0.55) px(ctx, wx, wy, 3, 4, '#241b1b');
-        else px(ctx, wx, wy, 3, 4, near ? '#8a6a37' : '#6d5330');
+        const r = hash(wx * 7 + wy * 13);
+        // Leave gaps so the facade has blank stretches of wall.
+        if (r < 0.22) continue;
+        px(ctx, wx, wy, 3, 4, r > 0.82 ? lit : shutter);
+        if (r > 0.82) px(ctx, wx, wy, 3, 1, shade(lit, 1.3));
       }
     }
+
+    // A few awnings and doorways at street level to break up the base.
+    if (hash(i * 97) > 0.5) {
+      const dx = bx + Math.round(bw * 0.3);
+      px(ctx, dx, baseY - 12, 7, 12, shutter);
+      px(ctx, dx - 1, baseY - 14, 9, 2, roof);
+    }
   }
+}
+
+/** Multiplies an #rrggbb colour, for quick lighter/darker variants. */
+function shade(hex: string, factor: number): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (shift: number) =>
+    Math.max(0, Math.min(255, Math.round(((n >> shift) & 0xff) * factor)));
+  return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
 }
 
 /**
@@ -125,19 +151,55 @@ export function drawTerrain(ctx: CanvasRenderingContext2D, cam: Camera, level: L
       continue;
     }
 
-    px(ctx, x, y, s.w, s.h, PAL.sandDeep);
-    px(ctx, x, y, s.w, 6, PAL.sandDark);
-    px(ctx, x, y, s.w, 3, PAL.sand);
-    px(ctx, x, y, s.w, 1, '#f0d59a');
-    // Masonry courses so long ground blocks do not read as a flat slab.
-    for (let row = 6; row < s.h; row += 8) {
-      for (let col = (row % 16 === 6 ? 0 : 8); col < s.w; col += 16) {
-        px(ctx, x + col, y + row, 14, 6, PAL.brickDark);
-        px(ctx, x + col, y + row, 14, 1, PAL.brick);
-      }
-    }
-    px(ctx, x, y + s.h - 1, s.w, 1, PAL.black);
+    drawGroundBlock(ctx, x, y, s.w, s.h, Math.round(s.x));
   }
+}
+
+/**
+ * One block of solid ground: a bright sand cap, a band of brickwork, and then
+ * a fade into darkness toward the bottom of the screen. The falloff matters -
+ * a evenly lit slab this large would pull the eye straight off the action.
+ */
+function drawGroundBlock(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number, worldX: number,
+): void {
+  px(ctx, x, y, w, h, PAL.sandDeep);
+
+  // Sand cap with an irregular top lip so the edge is not a ruled line.
+  px(ctx, x, y, w, 6, PAL.sandDark);
+  px(ctx, x, y, w, 3, PAL.sand);
+  px(ctx, x, y, w, 1, '#f0d59a');
+  for (let i = 0; i < w; i++) {
+    const r = hash(worldX + i);
+    if (r > 0.86) px(ctx, x + i, y - 1, 1, 1, PAL.sand);
+    else if (r < 0.1) px(ctx, x + i, y + 1, 1, 1, PAL.sandDark);
+  }
+
+  // Brick courses, offset row to row, with the odd cracked or missing brick.
+  const brickH = 7;
+  const brickW = 22;
+  for (let row = 0; (row + 1) * brickH + 6 < h; row++) {
+    const top = y + 6 + row * brickH;
+    if (top > SCREEN_H) break;
+    const offset = row % 2 === 0 ? 0 : brickW / 2;
+    for (let col = -1; col * brickW + offset < w; col++) {
+      const bx = x + col * brickW + offset;
+      const r = hash(worldX + col * 71 + row * 149);
+      if (r < 0.06) continue;
+      const face = r > 0.8 ? PAL.brick : PAL.brickDark;
+      px(ctx, bx, top, brickW - 2, brickH - 2, face);
+      px(ctx, bx, top, brickW - 2, 1, r > 0.8 ? '#b8765a' : '#7d4a35');
+      if (r > 0.93) px(ctx, bx + 4, top + 2, 5, 2, PAL.sandDeep);
+    }
+  }
+
+  // Depth falloff: successive translucent bands rather than one flat overlay.
+  const from = y + 10;
+  for (let band = 0; from + band * 8 < y + h && from + band * 8 < SCREEN_H; band++) {
+    px(ctx, x, from + band * 8, w, 8, `rgba(10,6,10,${Math.min(0.5, 0.07 * band)})`);
+  }
+  px(ctx, x, y + 6, w, 1, PAL.black);
 }
 
 /** A few foreground details that scroll slightly faster than the play plane. */

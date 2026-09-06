@@ -17,6 +17,10 @@ interface Blast {
   x: number; y: number; r: number; life: number; maxLife: number;
 }
 
+interface Flash {
+  x: number; y: number; angle: number; size: number; life: number;
+}
+
 interface Popup {
   x: number; y: number; text: string; life: number; color: string;
 }
@@ -29,11 +33,32 @@ export class Fx {
   private particles: Particle[] = [];
   private blasts: Blast[] = [];
   private popups: Popup[] = [];
+  private flashes: Flash[] = [];
 
   clear(): void {
     this.particles.length = 0;
     this.blasts.length = 0;
     this.popups.length = 0;
+    this.flashes.length = 0;
+  }
+
+  /**
+   * A muzzle flash at the end of the barrel. Three frames is enough - it is
+   * the punctuation on every shot, and the thing that makes firing feel like
+   * an event rather than a bullet quietly appearing.
+   */
+  muzzle(x: number, y: number, angle: number, size = 5): void {
+    this.flashes.push({ x, y, angle, size, life: 3 });
+    this.particles.push({
+      x, y,
+      vx: Math.cos(angle) * rng.range(0.6, 1.6),
+      vy: Math.sin(angle) * rng.range(0.6, 1.6) - 0.2,
+      life: 7, maxLife: 7,
+      size: 1,
+      gravity: 0.02,
+      colors: [PAL.white, PAL.fire],
+      kind: 'spark',
+    });
   }
 
   spark(x: number, y: number, count: number, color: string = PAL.fire): void {
@@ -123,6 +148,9 @@ export class Fx {
       p.y -= 0.4;
       if (--p.life <= 0) this.popups.splice(i, 1);
     }
+    for (let i = this.flashes.length - 1; i >= 0; i--) {
+      if (--this.flashes[i].life <= 0) this.flashes.splice(i, 1);
+    }
   }
 
   /** Drawn under the entities: smoke and lingering fire. */
@@ -151,6 +179,19 @@ export class Fx {
         disc(ctx, x, y, r * 0.5, PAL.fireDeep);
       }
       ring(ctx, x, y, r, t < 0.5 ? PAL.fire : PAL.smoke);
+    }
+
+    for (const f of this.flashes) {
+      const x = Math.round(f.x - cam.ox);
+      const y = Math.round(f.y - cam.oy);
+      const r = f.size * (f.life / 3);
+      const cos = Math.cos(f.angle);
+      const sin = Math.sin(f.angle);
+      // A short cone of flame along the barrel with a white-hot core.
+      disc(ctx, x, y, r, PAL.fireMid);
+      disc(ctx, x + cos * r * 0.7, y + sin * r * 0.7, r * 0.7, PAL.fire);
+      disc(ctx, x, y, Math.max(1, r * 0.45), PAL.white);
+      px(ctx, x + cos * r * 1.5 - 1, y + sin * r * 1.5 - 1, 2, 2, PAL.fire);
     }
 
     for (const p of this.particles) {

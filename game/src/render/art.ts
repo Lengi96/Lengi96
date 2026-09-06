@@ -147,18 +147,72 @@ export function mirrored(
   ctx.restore();
 }
 
-let scratch: HTMLCanvasElement | null = null;
+const scratches: Array<HTMLCanvasElement | null> = [null, null, null];
 
-function scratchFor(w: number, h: number): CanvasRenderingContext2D | null {
-  if (!scratch) scratch = document.createElement('canvas');
-  if (scratch.width < w || scratch.height < h) {
-    scratch.width = Math.max(scratch.width, w);
-    scratch.height = Math.max(scratch.height, h);
+function scratchFor(slot: number, w: number, h: number): CanvasRenderingContext2D | null {
+  let cv = scratches[slot];
+  if (!cv) {
+    cv = document.createElement('canvas');
+    scratches[slot] = cv;
   }
-  const c = scratch.getContext('2d');
+  if (cv.width < w || cv.height < h) {
+    cv.width = Math.max(cv.width, w);
+    cv.height = Math.max(cv.height, h);
+  }
+  const c = cv.getContext('2d');
   if (!c) return null;
-  c.clearRect(0, 0, scratch.width, scratch.height);
+  c.clearRect(0, 0, cv.width, cv.height);
   return c;
+}
+
+/** The eight neighbours a 1px outline is stamped into. */
+const OUTLINE_OFFSETS: ReadonlyArray<readonly [number, number]> = [
+  [-1, -1], [0, -1], [1, -1],
+  [-1, 0], [1, 0],
+  [-1, 1], [0, 1], [1, 1],
+];
+
+/**
+ * Draws `body` with a solid 1px outline around its silhouette.
+ *
+ * This is what makes a 22-pixel-tall character read against a busy backdrop:
+ * the arcade sprites this game is an homage to are all keylined, and without
+ * it the figures dissolve into the scenery. The body is rendered once into a
+ * scratch layer, stamped eight ways in the outline colour, then drawn on top.
+ */
+export function drawOutlined(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number,
+  outline: string,
+  body: (c: CanvasRenderingContext2D) => void,
+): void {
+  const bx = Math.floor(x) - 1;
+  const by = Math.floor(y) - 1;
+  const bw = Math.ceil(w) + 2;
+  const bh = Math.ceil(h) + 2;
+
+  const art = scratchFor(0, bw, bh);
+  const key = scratchFor(1, bw, bh);
+  if (!art || !key) {
+    body(ctx);
+    return;
+  }
+
+  art.save();
+  art.translate(-bx, -by);
+  body(art);
+  art.restore();
+
+  key.drawImage(art.canvas, 0, 0, bw, bh, 0, 0, bw, bh);
+  key.globalCompositeOperation = 'source-in';
+  key.fillStyle = outline;
+  key.fillRect(0, 0, bw, bh);
+  key.globalCompositeOperation = 'source-over';
+
+  for (const [dx, dy] of OUTLINE_OFFSETS) {
+    ctx.drawImage(key.canvas, 0, 0, bw, bh, bx + dx, by + dy, bw, bh);
+  }
+  ctx.drawImage(art.canvas, 0, 0, bw, bh, bx, by, bw, bh);
 }
 
 /**
@@ -177,7 +231,7 @@ export function drawTinted(
   const by = Math.floor(y);
   const bw = Math.ceil(w);
   const bh = Math.ceil(h);
-  const c = scratchFor(bw, bh);
+  const c = scratchFor(2, bw, bh);
   if (!c) return;
 
   c.save();

@@ -263,6 +263,8 @@ export class Player extends Entity implements Body {
 
     this.ammo = consumeAmmo(def, this.ammo);
     this.cooldown = def.cooldown;
+    const flashSize = def.kind === 'pellet' || def.blast > 0 ? 7 : def.big ? 6 : 4;
+    world.fx.muzzle(muzzleX + aim.x * 6, muzzleY + aim.y * 6, Math.atan2(aim.y, aim.x), flashSize);
     world.fx.casing(this.x, muzzleY, this.facing);
     this.playShotSound(def.kind);
     if (def.blast > 0 || def.kind === 'pellet') world.camera.shake(1, 4);
