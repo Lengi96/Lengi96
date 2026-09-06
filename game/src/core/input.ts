@@ -48,6 +48,8 @@ const BINDINGS_KEY = 'desert-slug.bindings.v1';
 export class Input {
   private held = new Set<Button>();
   private prev = new Set<Button>();
+  /** What the previous tick observed; the basis for edge detection. */
+  private lastSeen = new Set<Button>();
   private bindings: Bindings = loadBindings();
   private keyToButtons = new Map<string, Button[]>();
   /** When set, replaces all real input — used by the scripted demo runner. */
@@ -57,20 +59,33 @@ export class Input {
     this.rebuildKeyMap();
   }
 
+  /** Records a key going down. Public so the edge logic can be tested directly. */
+  keyDown(code: string): boolean {
+    const bs = this.keyToButtons.get(code);
+    if (!bs) return false;
+    for (const b of bs) this.held.add(b);
+    return true;
+  }
+
+  keyUp(code: string): boolean {
+    const bs = this.keyToButtons.get(code);
+    if (!bs) return false;
+    for (const b of bs) this.held.delete(b);
+    return true;
+  }
+
+  clear(): void {
+    this.held.clear();
+  }
+
   attach(target: Window = window): () => void {
     const down = (e: KeyboardEvent) => {
-      const bs = this.keyToButtons.get(e.code);
-      if (!bs) return;
-      e.preventDefault();
-      for (const b of bs) this.held.add(b);
+      if (this.keyDown(e.code)) e.preventDefault();
     };
     const up = (e: KeyboardEvent) => {
-      const bs = this.keyToButtons.get(e.code);
-      if (!bs) return;
-      e.preventDefault();
-      for (const b of bs) this.held.delete(b);
+      if (this.keyUp(e.code)) e.preventDefault();
     };
-    const blur = () => this.held.clear();
+    const blur = () => this.clear();
     target.addEventListener('keydown', down as EventListener);
     target.addEventListener('keyup', up as EventListener);
     target.addEventListener('blur', blur);
@@ -81,13 +96,21 @@ export class Input {
     };
   }
 
-  /** Call once per simulation tick, before the world updates. */
+  /**
+   * Call once per simulation tick, before the world updates.
+   *
+   * `prev` has to be the state the *previous* tick actually saw, not a copy of
+   * the current one: key events land in `held` between ticks, so snapshotting
+   * here would compare `held` against itself and no button would ever read as
+   * newly pressed.
+   */
   beginTick(): void {
-    this.prev = new Set(this.held);
+    this.prev = this.lastSeen;
     this.pollGamepad();
     if (this.scripted) {
       this.held = new Set(this.scripted);
     }
+    this.lastSeen = new Set(this.held);
   }
 
   private pollGamepad(): void {

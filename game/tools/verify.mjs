@@ -162,6 +162,29 @@ async function main() {
   await page.evaluate(() => window.__slug.loop.stop());
   await shot('01-title.png');
 
+  // --- Real keyboard, not the scripted hook. -------------------------------
+  // The autopilot replaces the input state wholesale, so it cannot prove that
+  // a browser key event reaches the game. Press Enter for real and check the
+  // title screen actually starts the mission.
+  await page.evaluate(() => window.__slug.release());
+  await page.keyboard.down('Enter');
+  await page.evaluate(() => window.__slug.step(2));
+  const afterEnter = await page.evaluate(() => window.__slug.state().scene);
+  await page.keyboard.up('Enter');
+
+  // And that a held key still moves the player, so both edge and level input work.
+  await page.evaluate(() => window.__slug.step(160));
+  const beforeWalk = await page.evaluate(() => window.__slug.state().playerX);
+  await page.keyboard.down('ArrowRight');
+  await page.evaluate(() => window.__slug.step(30));
+  const afterWalk = await page.evaluate(() => window.__slug.state().playerX);
+  await page.keyboard.up('ArrowRight');
+  console.log(`real keyboard: Enter -> scene "${afterEnter}", ArrowRight -> x ${beforeWalk} to ${afterWalk}`);
+
+  await page.reload();
+  await page.waitForFunction('window.__slug !== undefined');
+  await page.evaluate(() => window.__slug.loop.stop());
+
   // --- Run 1: ordinary rules. How far does a blind bot get on two lives? ---
   const run1 = await play({ maxTicks: 3000, invulnerable: false });
   await shot('02-fair-run.png');
@@ -199,6 +222,12 @@ async function main() {
 
   const failures = [];
   if (errors.length) failures.push('page errors: ' + errors.join('; '));
+  if (afterEnter === 'title') {
+    failures.push('real Enter key did not start the game (scene stayed "title")');
+  }
+  if (afterWalk <= beforeWalk) {
+    failures.push(`real ArrowRight did not move the player (x ${beforeWalk} -> ${afterWalk})`);
+  }
   if (run1.state.camX < 400) failures.push('run 1 barely scrolled: camX=' + run1.state.camX);
   if (run2.state.scene !== 'tally' && run2.state.phase !== 'clear') {
     failures.push('run 2 never cleared the mission: ' + JSON.stringify(run2.state));
