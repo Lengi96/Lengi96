@@ -223,7 +223,7 @@ export class Game {
         color: PAL.white, align: 'center', scale: 2, shadow: PAL.black,
       });
     }
-    drawText(ctx, 'WASD MOVE   CLICK FIRE   X JUMP   G BOMB', SCREEN_W / 2, 148, {
+    drawText(ctx, 'WASD MOVE  LMB FIRE  RMB KNIFE  SPACE JUMP  G BOMB', SCREEN_W / 2, 148, {
       color: PAL.hudDim, align: 'center', shadow: PAL.black,
     });
     drawText(ctx, `HI ${String(this.hiScore).padStart(7, '0')}`, SCREEN_W / 2, 196, {

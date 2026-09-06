@@ -188,6 +188,13 @@ async function main() {
   const shotsAfterClick = await page.evaluate(() => window.__slug.state().shots);
   console.log(`real mouse: click -> ${shotsAfterClick} player shot(s) in flight`);
 
+  // The knife sits on the right button, which also has to suppress the browser
+  // context menu; check the swing actually starts.
+  await page.locator('#screen').click({ button: 'right', position: { x: 40, y: 40 } });
+  await page.evaluate(() => window.__slug.step(2));
+  const meleeAfterRight = await page.evaluate(() => window.__slug.state().melee);
+  console.log(`real mouse: right click -> knife swinging: ${meleeAfterRight}`);
+
   await page.reload();
   await page.waitForFunction('window.__slug !== undefined');
   await page.evaluate(() => window.__slug.loop.stop());
@@ -237,6 +244,9 @@ async function main() {
   }
   if (!(shotsAfterClick >= 1)) {
     failures.push('a real mouse click on the screen did not fire the weapon');
+  }
+  if (!meleeAfterRight) {
+    failures.push('a real right click on the screen did not swing the knife');
   }
   if (run1.state.camX < 400) failures.push('run 1 barely scrolled: camX=' + run1.state.camX);
   if (run2.state.scene !== 'tally' && run2.state.phase !== 'clear') {

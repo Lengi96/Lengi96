@@ -87,6 +87,7 @@ window.__slug = {
       grenades: w.player.grenades,
       actors: w.actors.length,
       shots: w.playerShots.length,
+      melee: w.player.meleeing,
       bossHp: w.boss?.hp ?? null,
       riding: w.player.ridingSlug,
     };

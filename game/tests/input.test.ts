@@ -43,7 +43,7 @@ describe('edge detection on the real keyboard path', () => {
     input.beginTick();
     expect(input.pressed('jump')).toBe(false);
 
-    input.keyDown('KeyX');
+    input.keyDown('Space');
     input.beginTick();
     expect(input.pressed('jump')).toBe(true);
   });
@@ -67,8 +67,10 @@ describe('edge detection on the real keyboard path', () => {
       ['ArrowRight', 'right'], ['KeyD', 'right'],
       ['ArrowUp', 'up'], ['KeyW', 'up'],
       ['ArrowDown', 'down'], ['KeyS', 'down'],
-      ['Mouse0', 'shoot'], ['Space', 'shoot'],
-      ['KeyX', 'jump'], ['KeyG', 'grenade'],
+      ['Mouse0', 'shoot'], ['KeyJ', 'shoot'],
+      ['Mouse2', 'melee'], ['KeyK', 'melee'],
+      ['Space', 'jump'], ['KeyX', 'jump'],
+      ['KeyG', 'grenade'],
       ['Enter', 'start'],
       ['KeyP', 'pause'], ['Escape', 'pause'],
       ['KeyM', 'mute'],
@@ -82,7 +84,7 @@ describe('edge detection on the real keyboard path', () => {
     }
   });
 
-  it('fires from the mouse button exactly like the space bar', () => {
+  it('fires from the left mouse button exactly like the fire key', () => {
     const input = new Input();
     input.keyDown('Mouse0');
     input.beginTick();
@@ -103,7 +105,7 @@ describe('edge detection on the real keyboard path', () => {
     // other, which is why buttons are derived from the held sources each tick
     // rather than toggled directly.
     const input = new Input();
-    input.keyDown('Space');
+    input.keyDown('KeyJ');
     input.keyDown('Mouse0');
     input.beginTick();
     expect(input.down('shoot')).toBe(true);
@@ -112,7 +114,7 @@ describe('edge detection on the real keyboard path', () => {
     input.beginTick();
     expect(input.down('shoot')).toBe(true);
 
-    input.keyUp('Space');
+    input.keyUp('KeyJ');
     input.beginTick();
     expect(input.down('shoot')).toBe(false);
   });
@@ -175,6 +177,16 @@ describe('taps shorter than a frame', () => {
 
     // And it lasts exactly one tick, so it cannot stick as continuous fire.
     input.beginTick();
+    expect(input.down('shoot')).toBe(false);
+  });
+});
+
+describe('the knife on the right mouse button', () => {
+  it('is its own button, separate from firing', () => {
+    const input = new Input();
+    input.keyDown('Mouse2');
+    input.beginTick();
+    expect(input.pressed('melee')).toBe(true);
     expect(input.down('shoot')).toBe(false);
   });
 });

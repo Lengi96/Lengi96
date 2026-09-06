@@ -26,8 +26,9 @@ Unterordner heraus lauffähig, z. B. GitHub Pages).
 | Aktion | Tastatur | Gamepad |
 |---|---|---|
 | Bewegen / Zielen (8 Wege) | Pfeiltasten oder WASD | D-Pad / linker Stick |
-| Schießen (halten = Dauerfeuer) | **Mausklick** oder `Leertaste` | B / X |
-| Springen | `X` | A |
+| Schießen (halten = Dauerfeuer) | **Linksklick** oder `J` | B |
+| Messer (Nahkampf) | **Rechtsklick** oder `K` | X |
+| Springen | `Leertaste` oder `X` | A |
 | Granate | `G` | Y / R1 |
 | Start / Continue | `Enter` | Start |
 | Pause | `P` oder `Esc` | Select |
@@ -36,7 +37,9 @@ Unterordner heraus lauffähig, z. B. GitHub Pages).
 Feinheiten, die das Spielgefühl ausmachen:
 
 - **Ducken und Kriechen** über Stick nach unten — kleinere Trefferfläche.
-- **Nahkampf:** Der Schussknopf wird direkt am Gegner automatisch zum Messer.
+- **Nahkampf:** Das Messer liegt auf der rechten Maustaste und schlägt zu, ob
+  etwas in Reichweite steht oder nicht. Zusätzlich wird der Schussknopf direkt
+  am Gegner automatisch zum Messer.
   Das Messer geht um Schilde herum, Kugeln nicht.
 - **Variabler Sprung:** Knopf früh loslassen → kürzerer Sprung. Runter + Sprung
   fällt durch Holzstege hindurch.

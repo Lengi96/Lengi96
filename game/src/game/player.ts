@@ -227,9 +227,23 @@ export class Player extends Entity implements Body {
     }
     if (!input.down('grenade')) this.grenadeHeld = false;
 
+    // The knife has its own button (right mouse), and swings whether or not
+    // anything is in reach - the player decides when to use it.
+    if (input.pressed('melee') && this.meleeTicks <= 0 && this.mods.canShoot) {
+      this.meleeTicks = MELEE_TICKS;
+      const target = this.meleeTarget(world);
+      if (target) {
+        target.hurt(20, world, this.x, true);
+        world.fx.spark(target.cx, target.cy, 6, PAL.white);
+      }
+      sfx.knife();
+      return;
+    }
+
     if (!input.down('shoot')) return;
 
-    // Contact range takes priority: the shoot button becomes the knife.
+    // At contact range the fire button still turns into the knife, the way the
+    // cabinet does it, so point-blank fire is never wasted on a bullet.
     const victim = this.meleeTarget(world);
     if (victim && this.meleeTicks <= 0) {
       this.meleeTicks = MELEE_TICKS;
@@ -279,6 +293,11 @@ export class Player extends Entity implements Body {
       case 'bullet': this.weapon === 'pistol' ? sfx.pistol() : sfx.machineGun(); break;
       default: sfx.machineGun();
     }
+  }
+
+  /** True while a knife swing is on screen. Read by the verification run. */
+  get meleeing(): boolean {
+    return this.meleeTicks > 0;
   }
 
   private meleeTarget(world: World) {

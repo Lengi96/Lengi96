@@ -5,11 +5,11 @@
  */
 export type Button =
   | 'left' | 'right' | 'up' | 'down'
-  | 'shoot' | 'jump' | 'grenade'
+  | 'shoot' | 'melee' | 'jump' | 'grenade'
   | 'start' | 'pause' | 'mute';
 
 export const BUTTONS: readonly Button[] = [
-  'left', 'right', 'up', 'down', 'shoot', 'jump', 'grenade', 'start', 'pause', 'mute',
+  'left', 'right', 'up', 'down', 'shoot', 'melee', 'jump', 'grenade', 'start', 'pause', 'mute',
 ];
 
 export type Bindings = Record<Button, string[]>;
@@ -26,9 +26,11 @@ export const DEFAULT_BINDINGS: Bindings = {
   right: ['KeyD', 'ArrowRight'],
   up: ['KeyW', 'ArrowUp'],
   down: ['KeyS', 'ArrowDown'],
-  // Fire on the mouse, with the space bar as the keyboard-only equivalent.
-  shoot: [MOUSE_LEFT, 'Space'],
-  jump: ['KeyX'],
+  // Fire on the mouse, knife on the right button; the letter keys are there
+  // so the game stays playable without a mouse.
+  shoot: [MOUSE_LEFT, 'KeyJ'],
+  melee: [MOUSE_RIGHT, 'KeyK'],
+  jump: ['Space', 'KeyX'],
   grenade: ['KeyG'],
   start: ['Enter'],
   pause: ['KeyP', 'Escape'],
@@ -39,7 +41,7 @@ export const DEFAULT_BINDINGS: Bindings = {
 const PAD_BUTTONS: Partial<Record<number, Button>> = {
   0: 'jump',     // A / cross
   1: 'shoot',    // B / circle
-  2: 'shoot',    // X / square
+  2: 'melee',    // X / square
   3: 'grenade',  // Y / triangle
   5: 'grenade',  // R1
   7: 'shoot',    // R2
@@ -52,7 +54,7 @@ const PAD_BUTTONS: Partial<Record<number, Button>> = {
 };
 
 const STICK_DEADZONE = 0.45;
-const BINDINGS_KEY = 'desert-slug.bindings.v2';
+const BINDINGS_KEY = 'desert-slug.bindings.v3';
 
 export class Input {
   /**
