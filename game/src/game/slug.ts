@@ -341,7 +341,7 @@ export class RebelTank extends Entity implements Body, Damageable {
     if (--this.cooldown <= 0 && dist < 240) {
       this.cooldown = 84;
       world.enemyShots.push(
-        new EnemyShot(this.x + this.facing * 22, this.y - 15, this.facing * 4, -0.3, 'shell', 200, 0.05),
+        new EnemyShot(this.x + this.facing * 22, this.y - 15, this.facing * 2.8, -0.3, 'shell', 280, 0.05),
       );
       world.fx.smoke(this.x + this.facing * 22, this.y - 15, 3);
       world.camera.shake(1, 6);

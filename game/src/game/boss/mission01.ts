@@ -198,7 +198,7 @@ export class IronJackal extends Entity implements Damageable {
       const spread = (i - (count - 1) / 2) * 0.16;
       const a = this.cannonAngle + spread;
       world.enemyShots.push(
-        new EnemyShot(ox, oy, Math.cos(a) * 3.6, Math.sin(a) * 3.6, 'bullet', 240),
+        new EnemyShot(ox, oy, Math.cos(a) * 2.5, Math.sin(a) * 2.5, 'bullet', 340),
       );
     }
     world.fx.smoke(ox, oy, 3);
@@ -359,7 +359,7 @@ export class JackalPod extends Entity implements Damageable {
     const a = Math.atan2(p.cy - this.cy, p.cx - this.cx);
     for (let i = -1; i <= 1; i++) {
       world.enemyShots.push(
-        new EnemyShot(this.cx, this.cy, Math.cos(a + i * 0.2) * 3, Math.sin(a + i * 0.2) * 3),
+        new EnemyShot(this.cx, this.cy, Math.cos(a + i * 0.2) * 2.1, Math.sin(a + i * 0.2) * 2.1),
       );
     }
     world.fx.spark(this.cx, this.cy, 2, PAL.fire);

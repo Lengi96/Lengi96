@@ -30,6 +30,21 @@ describe('mission 1 layout', () => {
     }
   });
 
+  /**
+   * A spawn that triggers while its own position is already on screen pops the
+   * enemy into existence in front of the player. Every trigger therefore sits
+   * at least one screen width left of the spawn point, so the enemy is placed
+   * beyond the right edge and walks in.
+   */
+  it('never spawns anything inside the visible frame', () => {
+    for (const s of level.spawns) {
+      expect(
+        s.x - s.at,
+        `${s.kind} at ${s.x} triggers at camera ${s.at}, only ${s.x - s.at}px ahead`,
+      ).toBeGreaterThanOrEqual(SCREEN_W);
+    }
+  });
+
   it('never scrolls past the end of the level', () => {
     expect(level.bossCamX).toBeLessThanOrEqual(level.width - SCREEN_W);
   });

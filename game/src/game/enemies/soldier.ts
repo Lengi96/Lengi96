@@ -85,7 +85,7 @@ export class RebelSoldier extends Enemy {
   }
 
   private shoot(world: World): void {
-    const speed = 3.1;
+    const speed = 2.1;
     const a = this.aimAngle;
     world.enemyShots.push(
       new EnemyShot(

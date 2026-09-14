@@ -121,7 +121,7 @@ export class Rival extends Enemy {
   }
 
   private fire(world: World): void {
-    const speed = 3.6;
+    const speed = 2.5;
     const a = this.aimAngle;
     world.enemyShots.push(
       new EnemyShot(this.x + this.facing * 11, this.y - 16, Math.cos(a) * speed * this.facing, Math.sin(a) * speed),

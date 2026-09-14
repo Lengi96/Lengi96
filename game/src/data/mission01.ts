@@ -13,6 +13,10 @@ const WIDTH = 4240;
  * `at` on a spawn is the camera x that triggers it; `gate` ties the spawn to a
  * combat gate, and the camera will not scroll past that gate until every
  * enemy tagged with it is gone.
+ *
+ * Every `at` sits at least a screen width (320px) left of its `x`, so an enemy
+ * is always placed beyond the right edge and walks into view. Spawning one
+ * inside the frame makes it appear out of thin air, which reads as random.
  */
 export const MISSION_01: LevelData = {
   name: 'MISSION 1',
@@ -105,17 +109,17 @@ export const MISSION_01: LevelData = {
 
   spawns: [
     // --- Opening skirmish: loose infantry, no gate. ---
-    { at: 60, kind: 'soldier', x: 300, y: GROUND_Y },
-    { at: 120, kind: 'soldier', x: 380, y: GROUND_Y },
+    { at: 0, kind: 'soldier', x: 360, y: GROUND_Y },
+    { at: 40, kind: 'soldier', x: 420, y: GROUND_Y },
     { at: 150, kind: 'pow', x: 470, y: GROUND_Y, opts: { gift: 'grenade' } },
     { at: 200, kind: 'soldier', x: 520, y: GROUND_Y },
 
     // --- Gate 1: a squad behind the low wall. ---
     { at: 430, kind: 'soldier', x: 760, y: GROUND_Y, gate: 1 },
     { at: 430, kind: 'soldier', x: 830, y: GROUND_Y, gate: 1 },
-    { at: 460, kind: 'shield', x: 700, y: GROUND_Y, gate: 1 },
+    { at: 360, kind: 'shield', x: 700, y: GROUND_Y, gate: 1 },
     { at: 470, kind: 'mortar', x: 812, y: GROUND_Y, gate: 1 },
-    { at: 500, kind: 'soldier', x: 640, y: 112, facing: 1, gate: 1 },
+    { at: 300, kind: 'soldier', x: 640, y: 112, facing: 1, gate: 1 },
 
     // --- Between gates: pit crossing under fire. ---
     { at: 700, kind: 'turret', x: 1080, y: GROUND_Y },
@@ -123,12 +127,12 @@ export const MISSION_01: LevelData = {
     { at: 820, kind: 'pow', x: 1240, y: GROUND_Y },
 
     // --- Gate 2: rooftop crossfire. ---
-    { at: 1120, kind: 'soldier', x: 1420, y: GROUND_Y, gate: 2 },
+    { at: 1080, kind: 'soldier', x: 1420, y: GROUND_Y, gate: 2 },
     { at: 1120, kind: 'soldier', x: 1470, y: GROUND_Y, gate: 2 },
-    { at: 1130, kind: 'soldier', x: 1300, y: 110, facing: 1, gate: 2 },
-    { at: 1140, kind: 'shield', x: 1380, y: GROUND_Y, gate: 2 },
-    { at: 1160, kind: 'mortar', x: 1470, y: GROUND_Y, gate: 2 },
-    { at: 1160, kind: 'turret', x: 1330, y: 110, gate: 2 },
+    { at: 960, kind: 'soldier', x: 1300, y: 110, facing: 1, gate: 2 },
+    { at: 1040, kind: 'shield', x: 1380, y: GROUND_Y, gate: 2 },
+    { at: 1130, kind: 'mortar', x: 1470, y: GROUND_Y, gate: 2 },
+    { at: 1000, kind: 'turret', x: 1330, y: 110, gate: 2 },
 
     // --- Approach to the rival. ---
     { at: 1450, kind: 'soldier', x: 1780, y: GROUND_Y },
@@ -137,10 +141,10 @@ export const MISSION_01: LevelData = {
     { at: 1600, kind: 'shield', x: 1960, y: GROUND_Y },
 
     // --- Gate 3: Sergeant Ashfall with backup. ---
-    { at: 1960, kind: 'rival', x: 2180, y: GROUND_Y, gate: 3 },
-    { at: 1960, kind: 'soldier', x: 2100, y: GROUND_Y, gate: 3 },
-    { at: 1970, kind: 'soldier', x: 2240, y: GROUND_Y, gate: 3 },
-    { at: 1980, kind: 'turret', x: 2200, y: 126, gate: 3 },
+    { at: 1850, kind: 'rival', x: 2180, y: GROUND_Y, gate: 3 },
+    { at: 1770, kind: 'soldier', x: 2100, y: GROUND_Y, gate: 3 },
+    { at: 1900, kind: 'soldier', x: 2240, y: GROUND_Y, gate: 3 },
+    { at: 1860, kind: 'turret', x: 2200, y: 126, gate: 3 },
 
     // --- Terrace climb, and the tank that is waiting for the player. ---
     { at: 2200, kind: 'soldier', x: 2540, y: GROUND_Y },
@@ -149,10 +153,10 @@ export const MISSION_01: LevelData = {
     { at: 2400, kind: 'slug', x: 2960, y: GROUND_Y - 22 },
 
     // --- Gate 4: armoured push. ---
-    { at: 3040, kind: 'tank', x: 3300, y: GROUND_Y, gate: 4 },
-    { at: 3040, kind: 'soldier', x: 3180, y: GROUND_Y, gate: 4 },
-    { at: 3050, kind: 'soldier', x: 3350, y: GROUND_Y, gate: 4 },
-    { at: 3050, kind: 'shield', x: 3240, y: GROUND_Y, gate: 4 },
+    { at: 2960, kind: 'tank', x: 3300, y: GROUND_Y, gate: 4 },
+    { at: 2840, kind: 'soldier', x: 3180, y: GROUND_Y, gate: 4 },
+    { at: 3010, kind: 'soldier', x: 3350, y: GROUND_Y, gate: 4 },
+    { at: 2900, kind: 'shield', x: 3240, y: GROUND_Y, gate: 4 },
 
     // --- Final stretch into the market square. ---
     { at: 3100, kind: 'soldier', x: 3660, y: GROUND_Y },
@@ -161,6 +165,6 @@ export const MISSION_01: LevelData = {
     { at: 3260, kind: 'turret', x: 3880, y: GROUND_Y },
 
     // --- Boss. ---
-    { at: WIDTH - 340, kind: 'boss', x: WIDTH - 60, y: GROUND_Y },
+    { at: WIDTH - 400, kind: 'boss', x: WIDTH - 60, y: GROUND_Y },
   ],
 };

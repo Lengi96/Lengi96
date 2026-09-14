@@ -56,7 +56,7 @@ export class Turret extends Enemy {
   }
 
   private fire(world: World): void {
-    const speed = 3.4;
+    const speed = 2.3;
     const ox = Math.cos(this.angle) * 13;
     const oy = Math.sin(this.angle) * 13;
     world.enemyShots.push(
