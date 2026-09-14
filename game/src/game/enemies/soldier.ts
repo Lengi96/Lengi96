@@ -38,13 +38,19 @@ export class RebelSoldier extends Enemy {
     switch (this.state) {
       case 'advance':
         this.vx = this.facing * 0.72;
-        if (dist < 26) this.enter('throw', 16);
-        else if (dist < 96 && this.sees(world)) this.enter('aim', 16);
+        // `timer` is the recovery left from the last shot. Without this check
+        // the soldier walked straight back into aiming and fired roughly twice
+        // a second, which is faster than the player can read.
+        if (this.timer > 0) break;
+        if (dist < 26) this.enter('throw', 18);
+        else if (dist < 96 && this.sees(world)) this.enter('aim', 22);
         break;
 
       case 'aim':
         this.vx = 0;
-        this.aimAngle = Math.atan2(p.cy - (this.y - 15), Math.abs(dx) || 1);
+        // Aimed at where the player's chest would be standing up, not at the
+        // actual centre: that is what makes ducking under a volley work.
+        this.aimAngle = Math.atan2(p.y - 14 - (this.y - 15), Math.abs(dx) || 1);
         if (this.timer === 0) this.enter('fire', 8);
         break;
 
@@ -52,8 +58,9 @@ export class RebelSoldier extends Enemy {
         this.vx = 0;
         if (this.timer === 7) this.shoot(world);
         if (this.timer === 0) {
-          // Back off a little after firing so fights keep moving.
-          this.enter(dist < 40 ? 'back' : 'advance', 30);
+          // Back off a little after firing so fights keep moving, and hold the
+          // trigger shut for the recovery either way.
+          this.enter(dist < 40 ? 'back' : 'advance', 46);
         }
         break;
       }
@@ -61,12 +68,12 @@ export class RebelSoldier extends Enemy {
       case 'throw':
         this.vx = 0;
         if (this.timer === 8) this.throwKnife(world);
-        if (this.timer === 0) this.enter('back', 26);
+        if (this.timer === 0) this.enter('back', 34);
         break;
 
       case 'back':
         this.vx = -this.facing * 0.9;
-        if (this.timer === 0) this.enter('advance', 0);
+        if (this.timer === 0) this.enter('advance', 24);
         break;
     }
 

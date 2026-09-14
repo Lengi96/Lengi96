@@ -195,6 +195,21 @@ async function main() {
   const meleeAfterRight = await page.evaluate(() => window.__slug.state().melee);
   console.log(`real mouse: right click -> knife swinging: ${meleeAfterRight}`);
 
+  // Crouching holds the stick down, so the fire button has to keep working
+  // while it is held - otherwise ducking silently disables the weapon.
+  const crouchShots = await page.evaluate(() => {
+    const s = window.__slug;
+    s.hold([]);
+    s.step(30);
+    const before = s.state().shots;
+    s.hold(['down', 'shoot']);
+    s.step(6);
+    const after = s.state().shots;
+    s.release();
+    return after - before;
+  });
+  console.log(`crouched fire: ${crouchShots} shot(s) while holding down`);
+
   await page.reload();
   await page.waitForFunction('window.__slug !== undefined');
   await page.evaluate(() => window.__slug.loop.stop());
@@ -247,6 +262,9 @@ async function main() {
   }
   if (!meleeAfterRight) {
     failures.push('a real right click on the screen did not swing the knife');
+  }
+  if (!(crouchShots >= 1)) {
+    failures.push('holding down (crouch) blocked the fire button');
   }
   if (run1.state.camX < 400) failures.push('run 1 barely scrolled: camX=' + run1.state.camX);
   if (run2.state.scene !== 'tally' && run2.state.phase !== 'clear') {

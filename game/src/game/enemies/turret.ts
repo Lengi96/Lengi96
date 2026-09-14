@@ -6,8 +6,8 @@ import { sfx } from '../../core/audio';
 import { rng } from '../../core/rng';
 
 const BURST_SIZE = 3;
-const BURST_GAP = 9;
-const RELOAD = 78;
+const BURST_GAP = 13;
+const RELOAD = 104;
 
 /**
  * A wall-mounted gun that tracks the player and answers with short bursts.

@@ -36,7 +36,9 @@ Unterordner heraus lauffähig, z. B. GitHub Pages).
 
 Feinheiten, die das Spielgefühl ausmachen:
 
-- **Ducken und Kriechen** über Stick nach unten — kleinere Trefferfläche.
+- **Ducken und Kriechen** über `S` bzw. Pfeil runter — kleinere Trefferfläche,
+  und geduckt geschossen wird waagerecht nach vorn: Gegnerfeuer zielt auf
+  Brusthöhe im Stehen, man duckt sich also wirklich darunter weg.
 - **Nahkampf:** Das Messer liegt auf der rechten Maustaste und schlägt zu, ob
   etwas in Reichweite steht oder nicht. Zusätzlich wird der Schussknopf direkt
   am Gegner automatisch zum Messer.

@@ -263,7 +263,7 @@ export class Player extends Entity implements Body {
     }
     if (this.liveShots >= def.maxLive) return;
 
-    const aim = aimVector(input.ax, input.ay, this.facing);
+    const aim = this.aim;
     // Straight down is only available in the air, as on the cabinet.
     if (aim.y > 0 && aim.x === 0 && this.onGround) return;
 
@@ -323,8 +323,17 @@ export class Player extends Entity implements Body {
     return 'rifle';
   }
 
+  /**
+   * Where the shot goes. While crouching, the stick is already held down to
+   * stay down - so down means "forward, from the knee" rather than "at the
+   * floor", otherwise ducking would silently disable the fire button.
+   */
+  private get aim(): { x: number; y: number } {
+    return aimVector(input.ax, this.crouching ? 0 : input.ay, this.facing);
+  }
+
   get pose(): ActorPose {
-    const aim = aimVector(input.ax, input.ay, this.facing);
+    const aim = this.aim;
     const facingSpaceAim = Math.atan2(aim.y, aim.x * this.facing);
     return {
       facing: this.facing,
