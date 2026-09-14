@@ -1,0 +1,22 @@
+{
+  "name": "desert-slug",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify": "npm run build && node tools/verify.mjs",
+    "check": "npm run typecheck && npm run test && npm run verify",
+    "artifact": "npm run build && node tools/bundle-artifact.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}
